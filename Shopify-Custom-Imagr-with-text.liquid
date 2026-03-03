@@ -1,0 +1,311 @@
+{{ 'image-with-text.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'image-layer.js' | asset_url }}" defer="defer"></script>
+
+{% liquid
+  assign animation_effect = settings.animations
+  assign animated = false
+  if animation_effect != 'none'
+    assign animated = true
+    if section.settings.animations != 'inherit'
+      assign animation_effect = section.settings.animations
+    endif
+  endif
+
+  assign container = section.settings.container
+  if container == 'w-full'
+    assign container = 'container-full'
+  endif
+
+  assign heading_size = section.settings.heading_size
+%}
+
+{%- capture section_classes -%}
+m-section m-image-with-text {{ section.settings.custom_class }} m-section-{{ section.id }}
+{%- endcapture -%}
+
+{%- style -%}
+  .m-section-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  /* ===============================
+     LAYOUT
+  =================================*/
+
+  .m-section-{{ section.id }} .custom-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .m-section-{{ section.id }} .custom-media,
+  .m-section-{{ section.id }} .custom-content {
+    flex: 1;
+  }
+
+  /* ===============================
+     MEDIA (IMAGE / VIDEO)
+  =================================*/
+
+  .m-section-{{ section.id }} .custom-media {
+    flex: 1.4;
+    max-width: 750px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 18px;
+    position: relative;
+  }
+
+  .m-section-{{ section.id }} .custom-media img,
+  .m-section-{{ section.id }} .custom-media video {
+    width: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  .m-section-{{ section.id }} .custom-media:hover img,
+  .m-section-{{ section.id }} .custom-media:hover video {
+    transform: scale(1.08);
+  }
+
+  /* ===============================
+     CONTENT
+  =================================*/
+
+  .m-section-{{ section.id }} .custom-content {
+    max-width: 540px;
+  }
+
+  .m-section-{{ section.id }} .custom-content h2,
+  .m-section-{{ section.id }} .custom-content h3 {
+    font-size: 48px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  .m-section-{{ section.id }} .custom-content .rte {
+    font-size: 16px;
+    line-height: 1.7;
+    opacity: 0.85;
+    margin-bottom: 25px;
+  }
+
+  .m-section-{{ section.id }} .m-richtext__subtitle {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  /* ===============================
+     BUTTON
+  =================================*/
+
+  .m-section-{{ section.id }} .m-button {
+    padding: 14px 32px;
+    border-radius: 40px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .m-section-{{ section.id }} .m-button:hover {
+    transform: translateY(-3px);
+  }
+
+  /* ===============================
+     RESPONSIVE
+  =================================*/
+
+  @media (max-width: 992px) {
+
+    .m-section-{{ section.id }} .custom-flex {
+      flex-direction: column;
+      gap: 40px;
+      text-align: center;
+    }
+
+    .m-section-{{ section.id }} .custom-media {
+      max-width: 100%;
+    }
+
+    .m-section-{{ section.id }} .custom-content {
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .m-section-{{ section.id }} .custom-content h2,
+    .m-section-{{ section.id }} .custom-content h3 {
+      font-size: 28px;
+    }
+
+  }
+{%- endstyle -%}
+
+<section id="m-section-{{ section.id }}" class="{{ section_classes }}">
+  <div class="{{ container }}">
+    <div class="custom-flex">
+      <!-- LEFT SIDE (VIDEO / IMAGE) -->
+      <div class="custom-media">
+        {% if section.settings.enable_video and section.settings.video != blank %}
+          {{ section.settings.video | video_tag: autoplay: true, loop: true, muted: true, controls: false }}
+        {% elsif section.settings.image != blank %}
+          <img src="{{ section.settings.image | image_url: width: 1200 }}" alt="">
+        {% endif %}
+      </div>
+
+      <!-- RIGHT SIDE (CONTENT) -->
+      <div class="custom-content m:text-{{ section.settings.content_alignment }}">
+        {% if section.settings.sub_title != blank %}
+          <p class="m-richtext__subtitle">
+            {{ section.settings.sub_title }}
+          </p>
+        {% endif %}
+
+        {% if section.settings.title != blank %}
+          <{{ heading_size }} class="m-richtext__title">
+            {{ section.settings.title }}
+          </{{ heading_size }}>
+        {% endif %}
+
+        {% if section.settings.text != blank %}
+          <div class="rte">
+            {{ section.settings.text }}
+          </div>
+        {% endif %}
+
+        {% if section.settings.button_label != blank %}
+          <div style="margin-top:20px;">
+            <a href="{{ section.settings.button_link | default: '#' }}" class="m-button m-button--primary">
+              {{ section.settings.button_label }}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Image / Video with text",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_video",
+      "label": "Enable video instead of image",
+      "default": false
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Upload video"
+    },
+
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Fallback image"
+    },
+
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Your heading here"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "default": "h2",
+      "options": [
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "sub_title",
+      "label": "Subheading"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text"
+    },
+
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Content alignment",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+
+    {
+      "type": "select",
+      "id": "container",
+      "label": "Container type",
+      "default": "container",
+      "options": [
+        { "value": "container", "label": "Container" },
+        { "value": "container-full", "label": "Full width" }
+      ]
+    },
+
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "default": 80
+    },
+
+    {
+      "type": "text",
+      "id": "custom_class",
+      "label": "Custom class"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image / Video with text"
+    }
+  ]
+}
+{% endschema %}
